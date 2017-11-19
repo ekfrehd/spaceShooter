@@ -6,8 +6,7 @@
 # @Email:  prodicus@outlook.com  Github: @tasdikrahman
 # @Last Modified by:   tasdik
 # @Last Modified by:   Branden
-# @Last Modified by:   Dic3
-# @Last Modified time: 2016-10-16
+# @Last Modified time: 2016-01-26
 # MIT License. You can find a copy of the License @ http://prodicus.mit-license.org
 
 ## Game music Attribution
@@ -74,9 +73,6 @@ def main_menu():
             elif ev.key == pygame.K_q:
                 pygame.quit()
                 quit()
-        elif ev.type == pygame.QUIT:
-                pygame.quit()
-                quit() 
         else:
             draw_text(screen, "Press [ENTER] To Begin", 30, WIDTH/2, HEIGHT/2)
             draw_text(screen, "or [Q] To Quit", 30, WIDTH/2, (HEIGHT/2)+40)
@@ -150,8 +146,7 @@ class Explosion(pygame.sprite.Sprite):
                 self.image = explosion_anim[self.size][self.frame]
                 self.rect = self.image.get_rect()
                 self.rect.center = center
-
-
+#스프라이트 클래스 정의
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -251,31 +246,49 @@ class Player(pygame.sprite.Sprite):
 
 
 # defines the enemies
+# 장애물을 정의하는 클래스
 class Mob(pygame.sprite.Sprite):
+    ##몹 초기화
     def __init__(self):
+        ##현재 화면 초기화
         pygame.sprite.Sprite.__init__(self)
+        ##메테오의 이미지를 랜덤으로 초이스
         self.image_orig = random.choice(meteor_images)
+        ##이미지의 키값을 검정색으로 설정
         self.image_orig.set_colorkey(BLACK)
+        ##이미지를 복사
         self.image = self.image_orig.copy()
+        ##이미지의 사각형의 크기를 스캔
         self.rect = self.image.get_rect()
+        ##반지름을 사각형의너비*90/2로 설정
         self.radius = int(self.rect.width *.90 / 2)
+        #사각형의 x좌표값 난수로 받기 0이상 너비-사각형너비 미만의 난수
         self.rect.x = random.randrange(0, WIDTH - self.rect.width)
+        #사각형 y좌표값 난수로 받기 -150 이상 -100 미만의 난수
         self.rect.y = random.randrange(-150, -100)
+        #메테오의 y좌표 속도를 난수로 받기 5이상 20미만
         self.speedy = random.randrange(5, 20)        ## for randomizing the speed of the Mob
 
         ## randomize the movements a little more 
+        ##메테오의 x좌표 속도를 난수로 받기 -3이상3미만
         self.speedx = random.randrange(-3, 3)
 
         ## adding rotation to the mob element
+        #회전을 0으로 초기화
         self.rotation = 0
+        #회전속도를 난수로 받기 -8이상 8미만  
         self.rotation_speed = random.randrange(-8, 8)
+        #현재 시간을 마지막 업데이트에 저장
         self.last_update = pygame.time.get_ticks()  ## time when the rotation has to happen
         
+        #회전함수
     def rotate(self):
+        #현재시간을 저장
         time_now = pygame.time.get_ticks()
+        ##현재 시간보다 마지막 업데이트 시간이 50보다 크다면
         if time_now - self.last_update > 50: # in milliseconds
             self.last_update = time_now
-            self.rotation = (self.rotation + self.rotation_speed) % 360 
+            self.rotation = (s                        elf.rotation + self.rotation_speed) % 360 
             new_image = pygame.transform.rotate(self.image_orig, self.rotation)
             old_center = self.rect.center
             self.image = new_image
@@ -287,6 +300,7 @@ class Mob(pygame.sprite.Sprite):
         self.rect.x += self.speedx
         self.rect.y += self.speedy
         ## now what if the mob element goes out of the screen
+        ##장애물이 화면 밖으로 나갔을 떄 새로운 장애물 생성
 
         if (self.rect.top > HEIGHT + 10) or (self.rect.left < -25) or (self.rect.right > WIDTH + 20):
             self.rect.x = random.randrange(0, WIDTH - self.rect.width)
@@ -294,15 +308,21 @@ class Mob(pygame.sprite.Sprite):
             self.speedy = random.randrange(1, 8)        ## for randomizing the speed of the Mob
 
 ## defines the sprite for Powerups
+## 우주선의 무기 업그레이드를 정의하는 클래스
 class Pow(pygame.sprite.Sprite):
     def __init__(self, center):
         pygame.sprite.Sprite.__init__(self)
+        ##실드와 무기 업그레이드 중 랜덤으로 선택
         self.type = random.choice(['shield', 'gun'])
+        ## 무기 업그레이드 시 이미지 셋
         self.image = powerup_images[self.type]
+        ## 키값 검정색으로 설정
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
         ## place the bullet according to the current position of the player
+        ## 총알아이템 생성 위치를 현재 플레이어의 위치에 따라 설정
         self.rect.center = center
+        ## 총알 아이템의 속도 2
         self.speedy = 2
 
     def update(self):
@@ -328,8 +348,10 @@ class Bullet(pygame.sprite.Sprite):
 
     def update(self):
         """should spawn right in front of the player"""
+        ## 총알은 우주선 바로 앞에서 발사됨
         self.rect.y += self.speedy
         ## kill the sprite after it moves over the top border
+        ## 총알이 화면 최상단에 도달할 시 총알 삭제
         if self.rect.bottom < 0:
             self.kill()
 
@@ -338,19 +360,27 @@ class Bullet(pygame.sprite.Sprite):
         ## adding an event for it in Game loop
 
 ## FIRE ZE MISSILES
+## 미사일 발사 클래스
 class Missile(pygame.sprite.Sprite):
+    ## self x y 값을 초기화
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
+        ##미사일 이미지 불러오기
         self.image = missile_img
+        ##키색상 검정색 설정
         self.image.set_colorkey(BLACK)
+        ##미사일 이미지 사각형의 크기를 받아옴
         self.rect = self.image.get_rect()
+        ##
         self.rect.bottom = y
         self.rect.centerx = x
+        ## 미사일 속도 -10
         self.speedy = -10
 
     def update(self):
         """should spawn right in front of the player"""
         self.rect.y += self.speedy
+        ##사각형의 아래쪽이 0보다 작을시 삭제
         if self.rect.bottom < 0:
             self.kill()
 
@@ -426,6 +456,26 @@ pygame.mixer.music.set_volume(0.2)      ## simmered the sound down a little
 player_die_sound = pygame.mixer.Sound(path.join(sound_folder, 'rumble1.ogg'))
 ###################################################
 
+## group all the sprites together for ease of update
+all_sprites = pygame.sprite.Group()
+player = Player()
+all_sprites.add(player)
+
+## spawn a group of mob
+mobs = pygame.sprite.Group()
+for i in range(8):      ## 8 mobs
+    # mob_element = Mob()
+    # all_sprites.add(mob_element)
+    # mobs.add(mob_element)
+    newmob()
+
+## group for bullets
+bullets = pygame.sprite.Group()
+powerups = pygame.sprite.Group()
+
+#### Score board variable
+score = 0
+
 ## TODO: make the game music loop over again and again. play(loops=-1) is not working
 # Error : 
 # TypeError: play() takes no keyword arguments
@@ -447,26 +497,6 @@ while running:
         pygame.mixer.music.play(-1)     ## makes the gameplay sound in an endless loop
         
         menu_display = False
-        
-        ## group all the sprites together for ease of update
-        all_sprites = pygame.sprite.Group()
-        player = Player()
-        all_sprites.add(player)
-
-        ## spawn a group of mob
-        mobs = pygame.sprite.Group()
-        for i in range(8):      ## 8 mobs
-            # mob_element = Mob()
-            # all_sprites.add(mob_element)
-            # mobs.add(mob_element)
-            newmob()
-
-        ## group for bullets
-        bullets = pygame.sprite.Group()
-        powerups = pygame.sprite.Group()
-
-        #### Score board variable
-        score = 0
         
     #1 Process input/events
     clock.tick(FPS)     ## will make the loop run at the same speed all the time
